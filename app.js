@@ -4,7 +4,7 @@ const Koa = require('koa')
 // @ts-expect-error not a dependency of Telegraf
 const koaBody = require('koa-body')
 const safeCompare = require('safe-compare')
-const { register, session, list, size } = require('./repo')
+const { join, session, list, size, addPlayerIfNew, leave } = require('./repo')
 
 const token = '5373377602:AAFbnKSXv9QR1xrLqYeUZ8A-IRbN6snmRRg'
 if (token === undefined) {
@@ -15,10 +15,11 @@ const bot = new Telegraf(token)
 // First reply will be served via webhook response,
 // but messages order not guaranteed due to `koa` pipeline design.
 // Details: https://github.com/telegraf/telegraf/issues/294
+bot.use( async (ctx, next) => {await addPlayerIfNew(ctx); next();});
 bot.command('image', (ctx) => ctx.replyWithPhoto({ url: 'https://picsum.photos/200/300/?random' }))
-bot.command('join', async (ctx) => await register(ctx))
+bot.command('join', async (ctx) => await join(ctx))
 bot.command('new_session', async (ctx) => await session(ctx))
-bot.command('leave', (ctx) => ctx.reply('Participant Reigstered'))
+bot.command('leave', async (ctx) => await leave(ctx))
 bot.command('list', async (ctx) => await list(ctx))
 bot.command('size', async (ctx) => await size(ctx))
 bot.on('message', (ctx) => ctx.reply('Hello World'))

@@ -86,19 +86,34 @@ const session = async (ctx) => {
 
 // const setSize = async (ctx)
 
-const register =  async (ctx) => {
+const leave =  async (ctx) => {
     try {
         const telegram_id = ctx?.update?.message?.from?.id;
         let player =  R.head(await knex.select().table('player').where({telegram_id}))
 
-        if(R.isNil(player)){
-            const ToDbPlayer = {
-                first_name: ctx.update.message.from.first_name,
-                last_name: ctx.update.message.from.last_name || null,
-                telegram_id: ctx.update.message.from.id
-            }
-            player = await knex('player').insert(ToDbPlayer);
+        const session = await getCurrentSession();
+        if(R.isNil(session)){
+            return ctx.reply('Currently there are no registerations is progress');
         }
+
+        const playForPlayer = R.head(await knex().select().table('play').where({player_id: player?.id, session_id: session?.id}));
+        if(R.isNil(playForPlayer)){
+            return ctx.reply('You are not registered for this play.')
+        }
+        await await knex('play').where({id: playForPlayer.id}).del();
+        return ctx.reply(`${ctx.update.message.from.first_name} removed from play.`)
+    } catch (e) {
+        const message = e.message;
+        console.error(message);
+        return ctx.reply(`Unable to register due to internal error. Please contact administrator`);
+    }
+
+}
+
+const join =  async (ctx) => {
+    try {
+        const telegram_id = ctx?.update?.message?.from?.id;
+        let player =  R.head(await knex.select().table('player').where({telegram_id}))
 
         const session = await getCurrentSession();
         if(R.isNil(session)){
@@ -115,13 +130,33 @@ const register =  async (ctx) => {
             session_id: session?.id,
         }
         await await knex('play').insert(ToDbPlay);
-        return ctx.reply(`${ctx.update.message.from.first_name} Reigstered`)
+        return ctx.reply(`${ctx.update.message.from.first_name} joined the play.`)
     } catch (e) {
         const message = e.message;
         console.error(message);
         return ctx.reply(`Unable to register due to internal error. Please contact administrator`);
     }
 
+}
+
+const addPlayerIfNew = async (ctx) => {
+    try {
+        const telegram_id = ctx?.update?.message?.from?.id;
+        let player =  R.head(await knex.select().table('player').where({telegram_id}))
+
+        if(R.isNil(player)){
+            const ToDbPlayer = {
+                first_name: ctx.update.message.from.first_name,
+                last_name: ctx.update.message.from.last_name || null,
+                telegram_id: ctx.update.message.from.id
+            }
+            player = await knex('player').insert(ToDbPlayer);
+        }
+    } catch (e) {
+        const message = e.message;
+        console.error(message);
+        return ctx.reply(`Unable to register due to internal error. Please contact administrator`);
+    }
 }
 
 const getCurrentSession = async () => {
@@ -135,7 +170,11 @@ const isAdmin = async (ctx) => {
     return player.is_admin==true;
 }
 
-module.exports.register = register;
-module.exports.session = session;
-module.exports.list = list;
-module.exports.size = size;
+module.exports = {
+    join,
+    session,
+    list,
+    size,
+    addPlayerIfNew,
+    leave,
+}
