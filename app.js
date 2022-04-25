@@ -27,7 +27,7 @@ const secretPath = `/telegraf/${bot.secretPathComponent()}`
 
 // Set telegram webhook
 // npm install -g localtunnel && lt --port 3000
-bot.telegram.setWebhook(`https://stale-rattlesnake-91.loca.lt${secretPath}`)
+bot.telegram.setWebhook(`https://rare-jellyfish-8.loca.lt${secretPath}`)
 
 const app = new Koa()
 app.use(koaBody())

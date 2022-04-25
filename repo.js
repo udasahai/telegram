@@ -61,7 +61,7 @@ const list = async (ctx) => {
 const session = async (ctx) => {
     try {
         const telegram_id = ctx?.update?.message?.from?.id;
-        let player =  R.head(await knex.select().table('Player').where({telegram_id}))
+        let player =  R.head(await knex.select().table('player').where({telegram_id}))
         const isAdmin = player?.is_admin;
 
         if(R.isNil(player) || isAdmin!=true){
@@ -71,7 +71,7 @@ const session = async (ctx) => {
         const ToDbSession = {
             creater_id : player.id,
         }
-        await knex('Session').insert(ToDbSession);
+        await knex('session').insert(ToDbSession);
 
         var today = new Date();
         var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
@@ -89,7 +89,7 @@ const session = async (ctx) => {
 const register =  async (ctx) => {
     try {
         const telegram_id = ctx?.update?.message?.from?.id;
-        let player =  R.head(await knex.select().table('Player').where({telegram_id}))
+        let player =  R.head(await knex.select().table('player').where({telegram_id}))
 
         if(R.isNil(player)){
             const ToDbPlayer = {
@@ -97,7 +97,7 @@ const register =  async (ctx) => {
                 last_name: ctx.update.message.from.last_name || null,
                 telegram_id: ctx.update.message.from.id
             }
-            player = await knex('Player').insert(ToDbPlayer);
+            player = await knex('player').insert(ToDbPlayer);
         }
 
         const session = await getCurrentSession();
@@ -105,7 +105,7 @@ const register =  async (ctx) => {
             return ctx.reply('Currently there are no registerations is progress');
         }
 
-        const playForPlayer = R.head(await knex().select().table('Play').where({player_id: player?.id, session_id: session?.id}));
+        const playForPlayer = R.head(await knex().select().table('play').where({player_id: player?.id, session_id: session?.id}));
         if(!R.isNil(playForPlayer)){
             return ctx.reply('You are already reigstered for this session.')
         }
@@ -114,7 +114,7 @@ const register =  async (ctx) => {
             player_id: player?.id,
             session_id: session?.id,
         }
-        await await knex('Play').insert(ToDbPlay);
+        await await knex('play').insert(ToDbPlay);
         return ctx.reply(`${ctx.update.message.from.first_name} Reigstered`)
     } catch (e) {
         const message = e.message;
@@ -125,13 +125,13 @@ const register =  async (ctx) => {
 }
 
 const getCurrentSession = async () => {
-    return R.head(await knex().select().table('Session').orderBy('id', 'desc').limit(1));
+    return R.head(await knex().select().table('session').orderBy('id', 'desc').limit(1));
 }
 
 
 const isAdmin = async (ctx) => {
     const telegram_id = ctx?.update?.message?.from?.id;
-    let player =  R.head(await knex.select().table('Player').where({telegram_id}))
+    let player =  R.head(await knex.select().table('player').where({telegram_id}))
     return player.is_admin==true;
 }
 
