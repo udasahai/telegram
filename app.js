@@ -23,11 +23,18 @@ bot.command('list', async (ctx) => await list(ctx))
 bot.command('size', async (ctx) => await size(ctx))
 bot.on('message', (ctx) => ctx.reply('Hello World'))
 
+const node_env = process.env.NODE_ENV;
+let url = 'little-pig-56.loca.lt'
+if(node_env == 'prod'){
+  url = 'udayansahai.com'
+} 
+
 const secretPath = `/telegraf/${bot.secretPathComponent()}`
 
 // Set telegram webhook
 // npm install -g localtunnel && lt --port 3000
-bot.telegram.setWebhook(`https://rare-jellyfish-8.loca.lt${secretPath}`)
+console.log(`Using url - ${url}`);
+bot.telegram.setWebhook(`https://${url}${secretPath}`)
 
 const app = new Koa()
 app.use(koaBody())
