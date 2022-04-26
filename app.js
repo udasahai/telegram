@@ -25,7 +25,7 @@ bot.command('size', async (ctx) => await size(ctx))
 bot.on('message', (ctx) => ctx.reply('Hello World'))
 
 const node_env = process.env.NODE_ENV;
-let url = 'little-pig-56.loca.lt'
+let url = 'dangerous-moth-6.loca.lt'
 if(node_env == 'prod'){
   url = 'udayansahai.com'
 } 
