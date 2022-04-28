@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS play;
 DROP TABLE IF EXISTS session;
 DROP TABLE IF EXISTS player;
+DROP TABLE IF EXISTS shuttle_pool;
+DROP TABLE IF EXISTS shuttle_deposit;
 
 CREATE TABLE player (
     id int NOT NULL AUTO_INCREMENT,
@@ -28,6 +30,23 @@ CREATE TABLE play (
     PRIMARY KEY(id),
     FOREIGN KEY (player_id) REFERENCES player(id),
     FOREIGN KEY (session_id) REFERENCES session(id)
+);
+
+CREATE TABLE shuttle_pool (
+    id int AUTO_INCREMENT,
+    player_id int NOT NULL,
+    balance_left int NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY (player_id) REFERENCES player(id)
+);
+
+create TABLE shuttle_deposit (
+    id int AUTO_INCREMENT,
+    player_id int NOT NULL,
+    amount int NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(id),
+    FOREIGN KEY (player_id) REFERENCES player(id)
 );
 
 INSERT INTO player (first_name, last_name, telegram_id, is_admin) VALUES ("Udayan", "Sahai", 5187734117, 1);

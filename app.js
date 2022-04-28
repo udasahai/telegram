@@ -15,17 +15,21 @@ const bot = new Telegraf(token)
 // First reply will be served via webhook response,
 // but messages order not guaranteed due to `koa` pipeline design.
 // Details: https://github.com/telegraf/telegraf/issues/294
+bot.command('start', (ctx) => ctx.reply('Hello I the BadmintonBot. Please use the command menu to give me a command.'))
 bot.use( async (ctx, next) => {await addPlayerIfNew(ctx); next();});
 bot.command('image', (ctx) => ctx.replyWithPhoto({ url: 'https://picsum.photos/200/300/?random' }))
 bot.command('join', async (ctx) => await join(ctx))
 bot.command('new_session', async (ctx) => await session(ctx))
+// bot.command('end_session', async (ctx) => await end_session(ctx))
 bot.command('leave', async (ctx) => await leave(ctx))
 bot.command('list', async (ctx) => await list(ctx))
 bot.command('size', async (ctx) => await size(ctx))
-bot.on('message', (ctx) => ctx.reply('Hello World'))
+bot.command('help', (ctx) => ctx.reply('Hello I the BadmintonBot. Please use the command menu to give me a command.'))
+bot.on('message', (ctx) => ctx.reply('Please input a valid command. No need to tag the bot. Commands are of the form - /command.'))
+bot.use( async (ctx) => ctx.reply('This is not a valid input.'));
 
 const node_env = process.env.NODE_ENV;
-let url = 'dangerous-moth-6.loca.lt'
+let url = 'spicy-chicken-59.loca.lt'
 if(node_env == 'prod'){
   url = 'udayansahai.com'
 } 

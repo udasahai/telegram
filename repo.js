@@ -31,7 +31,7 @@ const size = async (ctx) => {
        return ctx.reply(`Updated group to - ${num_people}`);
     } catch (e) {
         const message = e.message;
-        return ctx.reply(`Unable to register due to internal error. Please contact administrator.`);
+        return ctx.reply(`Unable to process due to internal error. Please contact administrator.`);
     }
 }
 const list = async (ctx) => {
@@ -50,9 +50,12 @@ const list = async (ctx) => {
 
         if(!needs_history){
             sessions = [await getCurrentSession()];
+            if(R.isNil(R.head(sessions))) {
+                return ctx.reply(`There are currently no active sessions.`);
+            }
         } else {
             const history_length = Number(split[1]);
-            sessions = await knex().select().table('session').orderBy('id', 'desc').limit(history_length);
+            sessions = await knex('session').select().orderBy('id', 'desc').limit(history_length);
         }
 
         for(const session of sessions){
@@ -66,6 +69,7 @@ const list = async (ctx) => {
         return ctx.reply(`Unable to register due to internal error. Please contact administrator`);
     }
 }
+
 const session = async (ctx) => {
     try {
         const telegram_id = ctx?.update?.message?.from?.id;
@@ -88,6 +92,30 @@ const session = async (ctx) => {
     }
 };
 
+
+// const end_session = async (ctx) => {
+//     try {
+//         const telegram_id = ctx?.update?.message?.from?.id;
+//         let player =  R.head(await knex.select().table('player').where({telegram_id}))
+//         const isAdmin = player?.is_admin;
+
+//         if(R.isNil(player) || isAdmin!=true){
+//             return ctx.reply(`You need to be an admin to end a session.`);
+//         } 
+
+//         const session = await getCurrentSession();
+
+//         const ToDbSession = {
+//             creater_id : player.id,
+//         }
+//         await knex('session').insert(ToDbSession);
+//         const date_str = moment(new Date()).format('MMMM Do YYYY');
+//         return ctx.reply(`New session started from - ${date_str}. Each session is valid for 24 hours.`)
+//     } catch (e) {
+//         const message = e.message;
+//         return ctx.reply(`Unable to register due to internal error. Please contact administrator`);
+//     }
+// };
 // const setSize = async (ctx)
 
 const leave =  async (ctx) => {
@@ -100,7 +128,7 @@ const leave =  async (ctx) => {
             return ctx.reply('Currently there are no registerations is progress');
         }
 
-        const playForPlayer = R.head(await knex().select().table('play').where({player_id: player?.id, session_id: session?.id}));
+        const playForPlayer = R.head(await knex('play').select().where({player_id: player?.id, session_id: session?.id}));
         if(R.isNil(playForPlayer)){
             return ctx.reply('You are not registered for this play.')
         }
@@ -124,7 +152,7 @@ const join =  async (ctx) => {
             return ctx.reply('Currently there are no registerations is progress');
         }
 
-        const playForPlayer = R.head(await knex().select().table('play').where({player_id: player?.id, session_id: session?.id}));
+        const playForPlayer = R.head(await knex('play').select().where({player_id: player?.id, session_id: session?.id}));
         if(!R.isNil(playForPlayer)){
             return ctx.reply('You are already reigstered for this session.')
         }
@@ -170,7 +198,6 @@ const formatList = async (session) => {
     const group_size = session.group_size;
     const players = await knex.select('first_name').from('player')
         .innerJoin('play', 'player.id', 'play.player_id').where({session_id: session.id});
-    players.push(...names);
     const date_str = moment(session.created_at).format('MMMM Do YYYY');
     let reply = `${date_str}\nSlots - ${group_size}\nPlaying\n`;
     const playing_players = players.slice(0, group_size);
@@ -188,7 +215,13 @@ const formatList = async (session) => {
 }
 
 const getCurrentSession = async () => {
-    return R.head(await knex().select().table('session').orderBy('id', 'desc').limit(1));
+    const session = R.head(await knex('session').select().orderBy('id', 'desc').limit(1));
+    if(R.isNil(session)){
+        return null;
+    }
+    const moment_now = moment(new Date());
+    const duration = moment.duration(moment_now.diff(new moment(session.created_at)));
+    return duration.asHours() < 25 ? session : null;
 }
 
 const isAdmin = async (ctx) => {
